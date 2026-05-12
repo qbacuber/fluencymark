@@ -86,30 +86,44 @@ h2 {
 
 /* Print Styles */
 @media print {
-  button, .context-menu, textarea, input[type='file'] {
+  @page {
+    size: A4;
+    margin: 20mm 15mm;
+  }
+
+  button, .context-menu, textarea, input[type='file'],
+  .header-bar, .editor-container, .import-error {
     display: none !important;
   }
+
+  .interactive-container {
+    padding: 0 !important;
+  }
+
+  .text-content {
+    max-width: 100% !important;
+    padding: 0 !important;
+    font-size: 10pt !important;
+    line-height: 1.4 !important;
+    letter-spacing: 0.02em !important;
+  }
+
   .print-view {
     display: block !important;
-    text-align: justify;
-    hyphens: auto;
-    -webkit-hyphens: auto;
-    -ms-hyphens: auto;
+    padding: 0 !important;
   }
+
   * {
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
   }
+
   body {
     padding: 0;
     margin: 0;
     background-color: var(--color-white);
-  }
-  .text-content {
-    text-align: justify;
-    hyphens: auto;
-    -webkit-hyphens: auto;
-    -ms-hyphens: auto;
+    font-size: 10pt;
+    line-height: 1.4;
   }
 }
 

@@ -2,6 +2,11 @@
 	import { documentStore } from '$lib/stores/documentStore.svelte';
 	import { DISFLUENCY_TYPES } from '$lib/types';
 
+	/** Strip punctuation: . , ? ! — – … and trim */
+	function cleanText(text: string): string {
+		return text.replace(/[.,?!;:—–\-…\u2026]+/g, '').trim();
+	}
+
 	// Derive summary of marked words with full segment info
 	let markedWords = $derived(
 		documentStore.words
@@ -9,13 +14,19 @@
 			.map((w) => {
 				const markedSegment = w.segments.find((s) => s.isMarked)!;
 				return {
-					segments: w.segments,
+					segments: w.segments.map((s) => ({
+						...s,
+						text: cleanText(s.text).toLowerCase()
+					})).filter((s) => s.text.length > 0),
 					typeLabel: markedSegment.type ? DISFLUENCY_TYPES[markedSegment.type].label : '',
 					color: markedSegment.type ? DISFLUENCY_TYPES[markedSegment.type].color : '',
 					bgColor: markedSegment.type ? DISFLUENCY_TYPES[markedSegment.type].bgColor : '',
-					note: markedSegment.note
+					note: markedSegment.note,
+					sortKey: cleanText(w.segments.map((s) => s.text).join('')).toLowerCase()
 				};
 			})
+			.filter((entry) => entry.sortKey.length > 0)
+			.sort((a, b) => a.sortKey.localeCompare(b.sortKey, 'pl'))
 	);
 </script>
 
@@ -23,6 +34,8 @@
 	<h1>Podsumowanie</h1>
 
 	{#if markedWords.length > 0}
+		<p class="word-count">Liczba zaznaczonych słów: {markedWords.length}</p>
+
 		<ul class="summary-list">
 			{#each markedWords as entry, i (i)}
 				<li>
@@ -56,7 +69,15 @@
 	}
 
 	h1 {
-		margin-bottom: var(--space-6);
+		font-size: 16pt;
+		margin-bottom: 12pt;
+	}
+
+	.word-count {
+		font-size: 11pt;
+		font-weight: 600;
+		margin: 0 0 8pt 0;
+		color: var(--color-gray-700);
 	}
 
 	.summary-list {
@@ -65,24 +86,21 @@
 		margin: 0;
 		display: flex;
 		flex-direction: column;
-		gap: var(--space-1);
-		
+		gap: 2pt;
 	}
 
 	.summary-list li {
 		display: flex;
 		align-items: center;
 		gap: var(--space-2);
-		font-size: 1.2rem;
-		line-height: 1.6;
-		letter-spacing: 0.10em;
+		font-size: 10pt;
+		line-height: 1.5;
+		letter-spacing: 0.02em;
 	}
-
 
 	.segment-span {
 		position: relative;
 		z-index: 5;
-
 	}
 
 	.segment-span.marked {
@@ -103,6 +121,6 @@
 	}
 
 	.note {
-		font-size: 0.8rem;
+		font-size: 8pt;
 	}
 </style>

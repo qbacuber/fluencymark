@@ -25,6 +25,42 @@
 		currentNote: undefined
 	});
 
+	let importError = $state('');
+
+	function handleExport() {
+		const json = documentStore.exportToJson();
+		const blob = new Blob([json], { type: 'application/json' });
+		const url = URL.createObjectURL(blob);
+		const a = document.createElement('a');
+		a.href = url;
+		a.download = 'fluencymark-session.json';
+		a.click();
+		URL.revokeObjectURL(url);
+	}
+
+	function handleImport() {
+		const input = document.createElement('input');
+		input.type = 'file';
+		input.accept = '.json';
+		input.onchange = () => {
+			const file = input.files?.[0];
+			if (!file) return;
+			const reader = new FileReader();
+			reader.onload = () => {
+				const text = reader.result as string;
+				const success = documentStore.importFromJson(text);
+				if (!success) {
+					importError = 'Nieprawidłowy plik JSON. Sprawdź format.';
+					setTimeout(() => (importError = ''), 4000);
+				} else {
+					importError = '';
+				}
+			};
+			reader.readAsText(file);
+		};
+		input.click();
+	}
+
 	function handleToggleMark(wordId: string) {
 		const word = documentStore.words.find((w) => w.id === wordId);
 		if (!word) return;
@@ -265,6 +301,18 @@
 		<div class="header-actions">
 			<button
 				class="btn-secondary"
+				onclick={handleImport}
+			>
+				Importuj JSON
+			</button>
+			<button
+				class="btn-secondary"
+				onclick={handleExport}
+			>
+				Eksportuj JSON
+			</button>
+			<button
+				class="btn-secondary"
 				onclick={() => documentStore.returnToEdit()}
 			>
 				Wróć do edycji
@@ -277,6 +325,10 @@
 			</button>
 		</div>
 	</div>
+
+	{#if importError}
+		<p class="import-error">{importError}</p>
+	{/if}
 
 	<div class="text-content">
 		{#each documentStore.words as word (word.id)}
@@ -321,6 +373,14 @@
 	.header-actions {
 		display: flex;
 		gap: var(--space-3);
+	}
+
+	.import-error {
+		color: var(--color-danger);
+		font-size: 0.875rem;
+		font-weight: 500;
+		margin: 0 0 var(--space-4) 0;
+		text-align: center;
 	}
 
 	.btn-secondary {
