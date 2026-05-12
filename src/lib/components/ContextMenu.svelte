@@ -59,30 +59,30 @@
 
 <!-- svelte-ignore a11y_no_static_element_interactions -->
 <div
-	class="context-menu fixed z-50 rounded-lg border border-gray-200 bg-white p-3 shadow-xl"
+	class="context-menu"
 	style="top: {y}px; left: {x}px;"
 	onclick={(e: MouseEvent) => e.stopPropagation()}
 	onkeydown={(e: KeyboardEvent) => e.stopPropagation()}
 >
-	<div class="flex flex-col gap-2 min-w-[200px]">
-		<p class="text-xs font-semibold text-gray-500 uppercase">Oznacz jako:</p>
+	<div class="menu-content">
+		<p class="menu-heading">Oznacz jako:</p>
 
 		{#each Object.values(DISFLUENCY_TYPES) as config}
 			<button
-				class="flex items-center gap-2 rounded px-3 py-1.5 text-sm font-medium text-gray-800 hover:bg-gray-100 transition-colors"
+				class="type-button"
 				onclick={() => handleMark(config.type)}
 			>
-				<span class="inline-block w-4 h-4 rounded {config.color}"></span>
+				<span class="color-swatch" style="background-color: {config.bgColor}; border: 1.5px solid {config.color};"></span>
 				{config.label}
 			</button>
 		{/each}
 
-		<div class="border-t border-gray-200 pt-2 mt-1">
-			<label for="context-menu-note" class="text-xs text-gray-500 block mb-1">Notatka (opcjonalnie):</label>
+		<div class="note-section">
+			<label for="context-menu-note" class="note-label">Notatka (opcjonalnie):</label>
 			<input
 				id="context-menu-note"
 				type="text"
-				class="w-full rounded border border-gray-300 px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+				class="note-input"
 				placeholder="Dodaj notatkę..."
 				bind:value={note}
 			/>
@@ -90,7 +90,7 @@
 
 		{#if isMarked}
 			<button
-				class="mt-1 rounded bg-red-50 px-3 py-1.5 text-sm font-medium text-red-700 hover:bg-red-100 transition-colors"
+				class="remove-button"
 				onclick={onRemove}
 			>
 				Usuń oznaczenie
@@ -98,3 +98,102 @@
 		{/if}
 	</div>
 </div>
+
+<style>
+	.context-menu {
+		position: fixed;
+		z-index: 50;
+		background-color: var(--color-white);
+		border: 1px solid var(--color-gray-300);
+		border-radius: var(--radius-md);
+		padding: var(--space-3);
+		box-shadow: var(--shadow-lg);
+	}
+
+	.menu-content {
+		display: flex;
+		flex-direction: column;
+		gap: var(--space-2);
+		min-width: 200px;
+	}
+
+	.menu-heading {
+		font-size: 12px;
+		font-weight: 600;
+		color: var(--color-gray-500);
+		text-transform: uppercase;
+		margin: 0;
+	}
+
+	.type-button {
+		display: flex;
+		align-items: center;
+		gap: var(--space-2);
+		border-radius: var(--radius-xs);
+		padding: 6px var(--space-3);
+		font-size: 14px;
+		font-weight: 500;
+		color: var(--color-gray-700);
+		background: none;
+		border: none;
+		cursor: pointer;
+		transition: background-color 0.15s;
+		text-align: left;
+		width: 100%;
+	}
+
+	.type-button:hover {
+		background-color: var(--color-gray-100);
+	}
+
+	.color-swatch {
+		display: inline-block;
+		width: 16px;
+		height: 16px;
+		border-radius: var(--radius-xs);
+		flex-shrink: 0;
+	}
+
+	.note-section {
+		border-top: 1px solid var(--color-gray-300);
+		padding-top: var(--space-2);
+		margin-top: var(--space-1);
+	}
+
+	.note-label {
+		font-size: 12px;
+		color: var(--color-gray-500);
+		display: block;
+		margin-bottom: var(--space-1);
+	}
+
+	.note-input {
+		width: 100%;
+		border-radius: var(--radius-xs);
+		border: 1px solid var(--color-gray-300);
+		padding: var(--space-1) var(--space-2);
+		font-size: 14px;
+	}
+
+	.note-input:focus {
+		outline: none;
+		box-shadow: 0 0 0 1px var(--color-info);
+	}
+
+	.remove-button {
+		margin-top: var(--space-1);
+		border-radius: var(--radius-xs);
+		background-color: var(--color-danger-tint);
+		padding: 6px var(--space-3);
+		font-size: 14px;
+		font-weight: 500;
+		color: var(--color-danger);
+		border: none;
+		cursor: pointer;
+		transition: background-color 0.15s;
+	}
+
+	.remove-button:hover {
+		background-color: #ebc8c8;
+	}
+</style>

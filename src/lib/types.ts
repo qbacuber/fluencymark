@@ -3,23 +3,28 @@ export type DisfluencyType = 'block' | 'repetition' | 'prolongation';
 export interface DisfluencyConfig {
 	type: DisfluencyType;
 	label: string; // Polish label
-	color: string; // Tailwind color class for display
-	printColor: string; // Hex color for print CSS
+	color: string; // Hex color for border (semantic color)
+	bgColor: string; // Hex color for light tinted background
 }
 
 export const DISFLUENCY_TYPES: Record<DisfluencyType, DisfluencyConfig> = {
-	block: { type: 'block', label: 'Blokada', color: 'bg-red-200', printColor: '#fecaca' },
+	block: {
+		type: 'block',
+		label: 'Blokada',
+		color: '#B04A4A', // danger
+		bgColor: '#f5e0e0' // danger-tint
+	},
 	repetition: {
 		type: 'repetition',
 		label: 'Powtórzenie',
-		color: 'bg-yellow-200',
-		printColor: '#fef08a'
+		color: '#C78E3F', // warning
+		bgColor: '#faf0e0' // warning-tint
 	},
 	prolongation: {
 		type: 'prolongation',
 		label: 'Przedłużenie',
-		color: 'bg-blue-200',
-		printColor: '#bfdbfe'
+		color: '#5C7CA3', // info
+		bgColor: '#e0eaf3' // info-tint
 	}
 };
 

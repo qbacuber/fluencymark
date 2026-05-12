@@ -4,33 +4,49 @@
 
 	let {
 		word,
-		onWordClick
+		onToggleMark
 	}: {
 		word: WordObject;
-		onWordClick?: (wordId: string, segmentId: string, element: HTMLElement) => void;
+		onToggleMark: (wordId: string) => void;
 	} = $props();
 
 	function handleClick(event: MouseEvent) {
-		const target = event.currentTarget as HTMLElement;
-		// Default to first segment for whole-word click
-		const firstSegment = word.segments[0];
-		if (firstSegment && onWordClick) {
-			onWordClick(word.id, firstSegment.id, target);
-		}
+		// Prevent triggering if user is selecting text (drag)
+		const selection = window.getSelection();
+		if (selection && !selection.isCollapsed) return;
+
+		onToggleMark(word.id);
 	}
 </script>
 
 <span
-	class="inline-block cursor-pointer rounded px-0.5 hover:outline hover:outline-1 hover:outline-gray-400"
+	class="word-display"
 	data-word-id={word.id}
 	onclick={handleClick}
 	role="button"
 	tabindex="0"
 	onkeydown={(e) => {
-		if (e.key === 'Enter' || e.key === ' ') handleClick(e as unknown as MouseEvent);
+		if (e.key === 'Enter' || e.key === ' ') {
+			e.preventDefault();
+			onToggleMark(word.id);
+		}
 	}}
 >
 	{#each word.segments as segment (segment.id)}
 		<SegmentSpan {segment} />
 	{/each}
 </span>
+
+<style>
+	.word-display {
+		display: inline-block;
+		cursor: pointer;
+		border-radius: var(--radius-xs);
+		padding: 0 2.7px;
+		user-select: text;
+	}
+
+	.word-display:hover {
+		outline: 1px solid var(--color-gray-300);
+	}
+</style>

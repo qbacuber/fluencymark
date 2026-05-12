@@ -36,38 +36,127 @@
 	}
 </script>
 
-<div class="flex flex-col items-center gap-6 p-6 h-full">
-	<h1 class="text-2xl font-bold text-gray-800">FluencyMark — Edytor tekstu</h1>
+<div class="editor-container">
+	<h1 class="editor-title">FluencyMark — Edytor tekstu</h1>
 
 	<textarea
-		class="w-full max-w-4xl flex-1 min-h-[60vh] resize-none rounded-lg border border-gray-300 p-4 text-lg font-mono focus:outline-none focus:ring-2 focus:ring-blue-500"
+		class="editor-textarea"
 		placeholder="Wklej lub wpisz tekst tutaj..."
 		value={documentStore.rawText}
 		oninput={handleInput}
 	></textarea>
 
-	<div class="flex flex-col items-center gap-4 w-full max-w-4xl">
-		<div class="flex items-center gap-4 w-full">
-			<label class="flex items-center gap-2 cursor-pointer text-gray-700">
-				<span class="text-sm">Wczytaj plik .txt:</span>
+	<div class="editor-controls">
+		<div class="file-upload-row">
+			<label class="file-upload-label">
+				<span>Wczytaj plik .txt:</span>
 				<input
 					type="file"
 					accept=".txt"
 					onchange={handleFileUpload}
-					class="text-sm file:mr-2 file:rounded file:border-0 file:bg-gray-100 file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-gray-700 hover:file:bg-gray-200"
 				/>
 			</label>
 		</div>
 
 		{#if errorMessage}
-			<p class="text-red-600 text-sm font-medium">{errorMessage}</p>
+			<p class="error-message">{errorMessage}</p>
 		{/if}
 
 		<button
 			onclick={handleConfirm}
-			class="rounded-lg bg-blue-600 px-8 py-3 text-lg font-semibold text-white shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
+			class="btn-primary"
 		>
 			Zatwierdź
 		</button>
 	</div>
 </div>
+
+<style>
+	.editor-container {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: var(--space-6);
+		padding: var(--space-6);
+		height: 100%;
+	}
+
+	.editor-title {
+		color: var(--color-gray-700);
+	}
+
+	.editor-textarea {
+		width: 100%;
+		max-width: 56rem;
+		flex: 1;
+		min-height: 60vh;
+		resize: none;
+		border-radius: var(--radius-sm);
+		border: 1px solid var(--color-gray-300);
+		padding: var(--space-4);
+		font-size: 1.125rem;
+		font-family: ui-monospace, monospace;
+		background-color: var(--color-white);
+		box-shadow: var(--shadow-md);
+	}
+
+	.editor-textarea:focus {
+		outline: none;
+		border-color: var(--color-primary);
+		box-shadow: 0 0 0 2px rgba(217, 119, 87, 0.25);
+	}
+
+	.editor-controls {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: var(--space-4);
+		width: 100%;
+		max-width: 56rem;
+	}
+
+	.file-upload-row {
+		display: flex;
+		align-items: center;
+		gap: var(--space-4);
+		width: 100%;
+	}
+
+	.file-upload-label {
+		display: flex;
+		align-items: center;
+		gap: var(--space-2);
+		cursor: pointer;
+		color: var(--color-gray-700);
+		font-size: 0.875rem;
+	}
+
+	.error-message {
+		color: var(--color-danger);
+		font-size: 0.875rem;
+		font-weight: 500;
+		margin: 0;
+	}
+
+	.btn-primary {
+		background-color: var(--color-primary);
+		color: var(--color-white);
+		border: none;
+		border-radius: var(--radius-sm);
+		padding: var(--space-3) var(--space-8);
+		font-size: 1.125rem;
+		font-weight: 600;
+		cursor: pointer;
+		box-shadow: var(--shadow-md);
+		transition: opacity 0.15s ease;
+	}
+
+	.btn-primary:hover {
+		opacity: 0.9;
+	}
+
+	.btn-primary:focus {
+		outline: none;
+		box-shadow: 0 0 0 2px rgba(217, 119, 87, 0.4);
+	}
+</style>
