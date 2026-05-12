@@ -19,7 +19,7 @@
 	}
 </script>
 
-<span
+<div
 	class="word-display"
 	data-word-id={word.id}
 	onclick={handleClick}
@@ -35,14 +35,14 @@
 	{#each word.segments as segment (segment.id)}
 		<SegmentSpan {segment} />
 	{/each}
-</span>
+</div>
 
 <style>
 	.word-display {
-		display: inline-block;
+		display: inline-flex;
 		cursor: pointer;
 		border-radius: var(--radius-xs);
-		padding: 0 2.7px;
+		padding: 0 3px;
 		user-select: text;
 	}
 

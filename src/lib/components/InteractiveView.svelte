@@ -362,7 +362,6 @@
 		padding: 0 var(--space-6);
 		font-size: 1.2rem;
 		line-height: 1.6;
-		user-select: none;
 		hyphens: auto;
 		-webkit-hyphens: auto;
 		-ms-hyphens: auto;

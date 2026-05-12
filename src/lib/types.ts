@@ -12,19 +12,19 @@ export const DISFLUENCY_TYPES: Record<DisfluencyType, DisfluencyConfig> = {
 		type: 'block',
 		label: 'Blokada',
 		color: '#B04A4A', // danger
-		bgColor: '#f5e0e0' // danger-tint
+		bgColor: '#f58080ff' // danger-tint
 	},
 	repetition: {
 		type: 'repetition',
 		label: 'Powtórzenie',
 		color: '#C78E3F', // warning
-		bgColor: '#faf0e0' // warning-tint
+		bgColor: '#f5dcb3ff' // warning-tint
 	},
 	prolongation: {
 		type: 'prolongation',
 		label: 'Przedłużenie',
 		color: '#5C7CA3', // info
-		bgColor: '#e0eaf3' // info-tint
+		bgColor: '#a1cff7ff' // info-tint
 	}
 };
 

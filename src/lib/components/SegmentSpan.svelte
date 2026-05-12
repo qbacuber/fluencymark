@@ -17,22 +17,22 @@
 <style>
 .segment-span {
 	position: relative;
-	z-index: 0;
+	z-index: 5;
 }
 
 .segment-span.marked {
-	isolation: isolate;
+	z-index: 0;
 }
 
 .segment-span.marked::before {
 	content: '';
 	position: absolute;
+	z-index: -4;
 	inset: -2px -4px;
 	top: 3px;
 	background-color: var(--badge-bg);
-	border: 1.5px solid var(--badge-border);
 	border-radius: var(--radius-sm);
-	z-index: -1;
+	z-index: -5;
 	pointer-events: none;
 }
 
