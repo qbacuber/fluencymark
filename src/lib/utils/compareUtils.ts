@@ -1,59 +1,58 @@
 import type { WordObject } from '$lib/types';
-import type { ExportData } from '$lib/stores/documentStore.svelte';
-import { processText } from '$lib/utils/textProcessor';
+import {
+	validateLegacyData,
+	validateV2Data,
+	migrateLegacyToWords,
+	reconstructFromV2
+} from '$lib/utils/migration';
 
 /**
- * Validates that a parsed JSON object conforms to the ExportData schema.
- * Returns the typed ExportData if valid, or null if invalid.
+ * Validates and reconstructs a WordObject array from imported data.
+ * Supports both v1 (legacy) and v2 formats, detected via the `version` field.
  */
-export function validateExportData(data: unknown): ExportData | null {
-	if (data === null || typeof data !== 'object') return null;
-	const obj = data as Record<string, unknown>;
-	if (obj.version !== 1) return null;
-	if (typeof obj.rawText !== 'string') return null;
-	if (!Array.isArray(obj.marks)) return null;
-	// Validate each mark entry
-	for (const mark of obj.marks) {
-		if (typeof mark !== 'object' || mark === null) return null;
-		const m = mark as Record<string, unknown>;
-		if (typeof m.wordIndex !== 'number') return null;
-		if (!Array.isArray(m.segments) || m.segments.length === 0) return null;
-		for (const seg of m.segments as unknown[]) {
-			if (typeof seg !== 'object' || seg === null) return null;
-			const s = seg as Record<string, unknown>;
-			if (typeof s.text !== 'string') return null;
-			if (typeof s.isMarked !== 'boolean') return null;
-		}
+export function validateAndReconstructWords(
+	data: unknown
+): { success: true; words: WordObject[]; rawText: string } | { success: false; error: string } {
+	if (data === null || typeof data !== 'object') {
+		return { success: false, error: 'Nieprawidłowy format pliku.' };
 	}
-	return data as ExportData;
+	const obj = data as Record<string, unknown>;
+
+	if (obj.version === 1) {
+		const legacy = validateLegacyData(data);
+		if (!legacy) return { success: false, error: 'Nieprawidłowy format pliku v1.' };
+		return { success: true, words: migrateLegacyToWords(legacy), rawText: legacy.rawText };
+	}
+
+	if (obj.version === 2) {
+		const v2 = validateV2Data(data);
+		if (!v2) return { success: false, error: 'Nieprawidłowy format pliku v2.' };
+		return { success: true, words: reconstructFromV2(v2), rawText: v2.rawText };
+	}
+
+	return { success: false, error: 'Nierozpoznany format pliku.' };
 }
 
 /**
- * Reconstructs WordObject[] from a valid ExportData.
- * Uses processText to split rawText into words, then applies marks.
+ * Validates that two rawText strings match.
+ * Used on the compare page to ensure both imported files share the same source text.
  */
-export function reconstructWords(exportData: ExportData): WordObject[] {
-	const words = processText(exportData.rawText);
-	for (const mark of exportData.marks) {
-		if (mark.wordIndex < 0 || mark.wordIndex >= words.length) continue;
-		if (!Array.isArray(mark.segments) || mark.segments.length === 0) continue;
-		words[mark.wordIndex] = {
-			...words[mark.wordIndex],
-			segments: mark.segments.map((s) => ({
-				id: crypto.randomUUID(),
-				text: s.text,
-				isMarked: s.isMarked,
-				...(s.type ? { type: s.type } : {}),
-				...(s.note ? { note: s.note } : {})
-			}))
+export function validateRawTextMatch(
+	rawText1: string,
+	rawText2: string
+): { success: boolean; error?: string } {
+	if (rawText1 !== rawText2) {
+		return {
+			success: false,
+			error: 'Teksty w obu plikach różnią się. Porównanie wymaga tego samego tekstu źródłowego.'
 		};
 	}
-	return words;
+	return { success: true };
 }
 
 /**
- * Counts the number of words that have at least one marked segment.
+ * Counts the number of words that are marked.
  */
 export function countMarkedWords(words: WordObject[]): number {
-	return words.filter((w) => w.segments.some((s) => s.isMarked)).length;
+	return words.filter((w) => w.isMarked).length;
 }

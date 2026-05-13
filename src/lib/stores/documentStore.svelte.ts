@@ -1,20 +1,14 @@
-import { type DocumentState, type DisfluencyType, type WordObject } from '$lib/types';
+import type { AppMode, DocumentState, WordObject } from '$lib/types';
 import { serialize, deserialize } from '$lib/utils/storage';
 import { processText } from '$lib/utils/textProcessor';
+import {
+	validateLegacyData,
+	validateV2Data,
+	migrateLegacyToWords,
+	reconstructFromV2
+} from '$lib/utils/migration';
 
 const STORAGE_KEY = 'fluencymark-state';
-
-/** Lightweight export format — only stores original text + marked words */
-export interface ExportMark {
-	wordIndex: number;
-	segments: { text: string; isMarked: boolean; type?: DisfluencyType; note?: string }[];
-}
-
-export interface ExportData {
-	version: 1;
-	rawText: string;
-	marks: ExportMark[];
-}
 
 function createDocumentStore() {
 	let state = $state<DocumentState>(loadInitialState());
@@ -33,13 +27,13 @@ function createDocumentStore() {
 	});
 
 	return {
-		get mode() {
+		get mode(): AppMode {
 			return state.mode;
 		},
-		get rawText() {
+		get rawText(): string {
 			return state.rawText;
 		},
-		get words() {
+		get words(): WordObject[] {
 			return state.words;
 		},
 
@@ -57,72 +51,71 @@ function createDocumentStore() {
 			state.words = [];
 		},
 
-		updateWord(wordId: string, updatedWord: WordObject) {
+		toggleMark(wordId: string) {
 			const index = state.words.findIndex((w) => w.id === wordId);
-			if (index !== -1) state.words[index] = updatedWord;
+			if (index !== -1) {
+				state.words[index] = {
+					...state.words[index],
+					isMarked: !state.words[index].isMarked
+				};
+			}
 		},
 
 		exportToJson(): string {
-			const marks: ExportMark[] = [];
+			const markedIndices: number[] = [];
 			state.words.forEach((word, index) => {
-				const hasMarked = word.segments.some((s) => s.isMarked);
-				if (hasMarked) {
-					marks.push({
-						wordIndex: index,
-						segments: word.segments.map((s) => {
-							const seg: ExportMark['segments'][number] = {
-								text: s.text,
-								isMarked: s.isMarked
-							};
-							if (s.isMarked && s.type) seg.type = s.type;
-							if (s.isMarked && s.note) seg.note = s.note;
-							return seg;
-						})
-					});
+				if (word.isMarked) {
+					markedIndices.push(index);
 				}
 			});
 
-			const data: ExportData = {
-				version: 1,
+			const data = {
+				version: 2,
 				rawText: state.rawText,
-				marks
+				markedIndices
 			};
 			return JSON.stringify(data, null, 2);
 		},
 
-		importFromJson(json: string): boolean {
+		importFromJson(json: string): { success: boolean; error?: string } {
 			try {
-				const data = JSON.parse(json) as ExportData;
-				if (data.version !== 1 || typeof data.rawText !== 'string' || !Array.isArray(data.marks)) {
-					return false;
+				const parsed = JSON.parse(json);
+				const data = validateV2Data(parsed);
+				if (!data) {
+					return { success: false, error: 'Nieprawidłowy plik JSON. Sprawdź format.' };
 				}
 
-				// Rebuild words from rawText
-				const words = processText(data.rawText);
-
-				// Apply marks
-				for (const mark of data.marks) {
-					if (mark.wordIndex < 0 || mark.wordIndex >= words.length) continue;
-					if (!Array.isArray(mark.segments) || mark.segments.length === 0) continue;
-
-					words[mark.wordIndex] = {
-						...words[mark.wordIndex],
-						segments: mark.segments.map((s) => ({
-							id: crypto.randomUUID(),
-							text: s.text,
-							isMarked: s.isMarked,
-							...(s.type ? { type: s.type } : {}),
-							...(s.note ? { note: s.note } : {})
-						}))
-					};
-				}
-
+				const words = reconstructFromV2(data);
 				state.rawText = data.rawText;
 				state.words = words;
 				state.mode = 'interactive';
-				return true;
+				return { success: true };
 			} catch {
-				return false;
+				return { success: false, error: 'Nieprawidłowy plik JSON. Sprawdź format.' };
+			}
+		},
+
+		importLegacyJson(json: string): { success: boolean; error?: string } {
+			try {
+				const parsed = JSON.parse(json);
+				const legacy = validateLegacyData(parsed);
+				if (!legacy) {
+					return {
+						success: false,
+						error: 'Plik nie jest rozpoznanym formatem starszej wersji.'
+					};
+				}
+
+				const words = migrateLegacyToWords(legacy);
+				state.rawText = legacy.rawText;
+				state.words = words;
+				state.mode = 'interactive';
+				return { success: true };
+			} catch {
+				return {
+					success: false,
+					error: 'Plik nie jest rozpoznanym formatem starszej wersji.'
+				};
 			}
 		}
 	};

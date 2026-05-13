@@ -1,7 +1,6 @@
-import type { DocumentState, DisfluencyType, Segment, WordObject } from '$lib/types';
+import type { DocumentState, WordObject } from '$lib/types';
 
 const VALID_MODES = ['edit', 'interactive'] as const;
-const VALID_DISFLUENCY_TYPES: DisfluencyType[] = ['block', 'repetition', 'prolongation'];
 
 /**
  * Serializes the document state to localStorage.
@@ -19,6 +18,7 @@ export function serialize(key: string, state: DocumentState): void {
  * Deserializes document state from localStorage.
  * Returns null if the key doesn't exist, JSON is invalid, or the data
  * doesn't conform to the DocumentState schema.
+ * If stored state has old shape (words with segments), discards it and returns null.
  */
 export function deserialize(key: string): DocumentState | null {
 	try {
@@ -62,35 +62,12 @@ function isValidWordObject(data: unknown): data is WordObject {
 
 	const obj = data as Record<string, unknown>;
 
-	if (typeof obj.id !== 'string') return false;
-	if (typeof obj.text !== 'string') return false;
-	if (!Array.isArray(obj.segments)) return false;
-
-	for (const segment of obj.segments) {
-		if (!isValidSegment(segment)) return false;
-	}
-
-	return true;
-}
-
-function isValidSegment(data: unknown): data is Segment {
-	if (data === null || typeof data !== 'object') return false;
-
-	const obj = data as Record<string, unknown>;
+	// If the word has a segments property, it's the old format — reject it
+	if ('segments' in obj) return false;
 
 	if (typeof obj.id !== 'string') return false;
 	if (typeof obj.text !== 'string') return false;
 	if (typeof obj.isMarked !== 'boolean') return false;
-
-	// Optional type field — must be a valid DisfluencyType if present
-	if ('type' in obj && obj.type !== undefined) {
-		if (!VALID_DISFLUENCY_TYPES.includes(obj.type as DisfluencyType)) return false;
-	}
-
-	// Optional note field — must be a string if present
-	if ('note' in obj && obj.note !== undefined) {
-		if (typeof obj.note !== 'string') return false;
-	}
 
 	return true;
 }

@@ -1,45 +1,7 @@
-export type DisfluencyType = 'block' | 'repetition' | 'prolongation';
-
-export interface DisfluencyConfig {
-	type: DisfluencyType;
-	label: string; // Polish label
-	color: string; // Hex color for border (semantic color)
-	bgColor: string; // Hex color for light tinted background
-}
-
-export const DISFLUENCY_TYPES: Record<DisfluencyType, DisfluencyConfig> = {
-	block: {
-		type: 'block',
-		label: 'Blokada',
-		color: '#B04A4A', // danger
-		bgColor: '#f58080ff' // danger-tint
-	},
-	repetition: {
-		type: 'repetition',
-		label: 'Powtórzenie',
-		color: '#C78E3F', // warning
-		bgColor: '#f5dcb3ff' // warning-tint
-	},
-	prolongation: {
-		type: 'prolongation',
-		label: 'Przedłużenie',
-		color: '#5C7CA3', // info
-		bgColor: '#a1cff7ff' // info-tint
-	}
-};
-
-export interface Segment {
+export interface WordObject {
 	id: string;
 	text: string;
 	isMarked: boolean;
-	type?: DisfluencyType;
-	note?: string;
-}
-
-export interface WordObject {
-	id: string;
-	text: string; // Original full word text
-	segments: Segment[];
 }
 
 export type AppMode = 'edit' | 'interactive';

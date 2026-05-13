@@ -1,65 +1,44 @@
 <script lang="ts">
 	import { documentStore } from '$lib/stores/documentStore.svelte';
-	import { DISFLUENCY_TYPES } from '$lib/types';
 
-	/** Strip punctuation: . , ? ! — – … and trim */
+	/** Strip leading and trailing punctuation, then lowercase */
 	function cleanText(text: string): string {
-		return text.replace(/[.,?!;:—–\-…\u2026]+/g, '').trim();
+		return text.replace(/^[.,?!;:—–\-…\u2026"'„"«»()\[\]{}]+/, '')
+			.replace(/[.,?!;:—–\-…\u2026"'„"«»()\[\]{}]+$/, '')
+			.toLowerCase();
 	}
 
-	// Derive summary of marked words with full segment info
-	let markedWords = $derived(
+	// Derive sorted list of marked word texts (cleaned)
+	let markedWordTexts = $derived(
 		documentStore.words
-			.filter((w) => w.segments.some((s) => s.isMarked))
-			.map((w) => {
-				const markedSegment = w.segments.find((s) => s.isMarked)!;
-				return {
-					segments: w.segments.map((s) => ({
-						...s,
-						text: cleanText(s.text).toLowerCase()
-					})).filter((s) => s.text.length > 0),
-					typeLabel: markedSegment.type ? DISFLUENCY_TYPES[markedSegment.type].label : '',
-					color: markedSegment.type ? DISFLUENCY_TYPES[markedSegment.type].color : '',
-					bgColor: markedSegment.type ? DISFLUENCY_TYPES[markedSegment.type].bgColor : '',
-					note: markedSegment.note,
-					sortKey: cleanText(w.segments.map((s) => s.text).join('')).toLowerCase()
-				};
-			})
-			.filter((entry) => entry.sortKey.length > 0)
-			.sort((a, b) => a.sortKey.localeCompare(b.sortKey, 'pl'))
+			.filter((w) => w.isMarked)
+			.map((w) => cleanText(w.text))
+			.filter((text) => text.length > 0)
+			.sort((a, b) => a.localeCompare(b, 'pl'))
 	);
+
+	let markedCount = $derived(
+		documentStore.words.filter((w) => w.isMarked).length
+	);
+
+	function handlePrint() {
+		window.print();
+	}
 </script>
 
 <div class="print-view">
 	<h1>Podsumowanie</h1>
 
-	{#if markedWords.length > 0}
-		<p class="word-count">Liczba zaznaczonych słów: {markedWords.length}</p>
+	{#if markedCount > 0}
+		<p class="word-count">Liczba zaznaczonych słów: {markedCount}</p>
 
 		<ul class="summary-list">
-			{#each markedWords as entry, i (i)}
-				<li>
-					<span class="word-with-badge">
-						{#each entry.segments as segment (segment.id)}
-							{#if segment.isMarked}
-								<span
-									class="segment-span marked"
-									style="--badge-bg: {entry.bgColor}; --badge-border: {entry.color};"
-								>{segment.text}</span>
-							{:else}
-								<span class="segment-span">{segment.text}</span>
-							{/if}
-						{/each}
-					</span>
-					<span>
-						- {entry.typeLabel}
-					</span>
-					{#if entry.note}
-						<span class="note">{entry.note}</span>
-					{/if}
-				</li>
+			{#each markedWordTexts as word, i (i)}
+				<li>{word}</li>
 			{/each}
 		</ul>
+
+		<button class="print-button" onclick={handlePrint}>Drukuj</button>
 	{/if}
 </div>
 
@@ -90,37 +69,21 @@
 	}
 
 	.summary-list li {
-		display: flex;
-		align-items: center;
-		gap: var(--space-2);
 		font-size: 10pt;
 		line-height: 1.5;
 		letter-spacing: 0.02em;
 	}
 
-	.segment-span {
-		position: relative;
-		z-index: 5;
+	.print-button {
+		margin-top: var(--space-4);
+		padding: var(--space-2) var(--space-4);
+		font-size: 10pt;
+		cursor: pointer;
 	}
 
-	.segment-span.marked {
-		isolation: isolate;
-		z-index: 0;
-	}
-
-	.segment-span.marked::before {
-		content: '';
-		position: absolute;
-		inset: -2px -4px;
-		top: 3px;
-		background-color: var(--badge-bg);
-		opacity: 1;
-		border-radius: var(--radius-xs);
-		z-index: -4;
-		pointer-events: none;
-	}
-
-	.note {
-		font-size: 8pt;
+	@media print {
+		.print-button {
+			display: none;
+		}
 	}
 </style>

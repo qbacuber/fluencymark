@@ -1,6 +1,5 @@
 <script lang="ts">
 	import type { WordObject } from '$lib/types';
-	import SegmentSpan from './SegmentSpan.svelte';
 
 	let {
 		word,
@@ -11,16 +10,18 @@
 	} = $props();
 
 	function handleClick(event: MouseEvent) {
-		// Prevent triggering if user is selecting text (drag)
 		const selection = window.getSelection();
-		if (selection && !selection.isCollapsed) return;
-
+		if (selection && !selection.isCollapsed) {
+			selection.removeAllRanges();
+			return;
+		}
 		onToggleMark(word.id);
 	}
 </script>
 
 <span
 	class="word-display"
+	class:marked={word.isMarked}
 	data-word-id={word.id}
 	onclick={handleClick}
 	role="button"
@@ -31,15 +32,11 @@
 			onToggleMark(word.id);
 		}
 	}}
->
-	{#each word.segments as segment (segment.id)}
-		<SegmentSpan {segment} />
-	{/each}
-</span>
+>{word.text}</span>
 
 <style>
 	.word-display {
-		display: inline-flex;
+		display: inline;
 		cursor: pointer;
 		border-radius: var(--radius-xs);
 		padding: 0 3px;
@@ -48,5 +45,11 @@
 
 	.word-display:hover {
 		outline: 1px solid var(--color-gray-300);
+	}
+
+	.word-display.marked {
+		background-color: var(--color-primary-100, #dbeafe);
+		border: 1px solid var(--color-primary-400, #60a5fa);
+		border-radius: var(--radius-xs);
 	}
 </style>
