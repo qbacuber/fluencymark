@@ -317,6 +317,12 @@
 			>
 				Wróć do edycji
 			</button>
+			<a
+				class="btn-secondary"
+				href="/compare"
+			>
+				Porównaj próby
+			</a>
 			<button
 				class="btn-primary"
 				onclick={() => window.print()}
