@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { base } from '$app/paths';
 	import { documentStore } from '$lib/stores/documentStore.svelte';
 	import WordDisplay from './WordDisplay.svelte';
 
@@ -73,7 +74,7 @@
 			</button>
 			<a
 				class="btn-secondary"
-				href="/compare"
+				href="{base}/compare"
 			>
 				Porównaj próby
 			</a>

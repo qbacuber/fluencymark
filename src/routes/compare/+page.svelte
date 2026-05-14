@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { base } from '$app/paths';
 	import type { WordObject } from '$lib/types';
 	import {
 		validateAndReconstructWords,
@@ -93,7 +94,7 @@
 		<button class="btn-secondary" onclick={() => importAttempt(1)}>Importuj próbę 1</button>
 		<button class="btn-secondary" onclick={() => importAttempt(2)}>Importuj próbę 2</button>
 		<button class="btn-primary" onclick={() => window.print()}>Drukuj do PDF</button>
-		<a class="btn-secondary" href="/">Wróć do edycji</a>
+		<a class="btn-secondary" href="{base}/">Wróć do edycji</a>
 	</div>
 
 	{#if error}
