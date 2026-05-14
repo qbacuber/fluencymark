@@ -21,6 +21,34 @@
 	let markedCount1 = $derived(attempt1 ? countMarkedWords(attempt1.words) : 0);
 	let markedCount2 = $derived(attempt2 ? countMarkedWords(attempt2.words) : 0);
 
+	/** Strip leading and trailing punctuation, then lowercase */
+	function cleanText(text: string): string {
+		return text
+			.replace(/^[.,?!;:—–\-…\u2026"'„"«»()\[\]{}]+/, '')
+			.replace(/[.,?!;:—–\-…\u2026"'„"«»()\[\]{}]+$/, '')
+			.toLowerCase();
+	}
+
+	let markedWords1 = $derived(
+		attempt1
+			? attempt1.words
+					.filter((w) => w.isMarked)
+					.map((w) => cleanText(w.text))
+					.filter((t) => t.length > 0)
+					.sort((a, b) => a.localeCompare(b, 'pl'))
+			: []
+	);
+
+	let markedWords2 = $derived(
+		attempt2
+			? attempt2.words
+					.filter((w) => w.isMarked)
+					.map((w) => cleanText(w.text))
+					.filter((t) => t.length > 0)
+					.sort((a, b) => a.localeCompare(b, 'pl'))
+			: []
+	);
+
 	function setError(message: string) {
 		error = message;
 		if (errorTimeout) {
@@ -32,58 +60,112 @@
 		}, 5000);
 	}
 
-	function importAttempt(slot: 1 | 2) {
+	function importFiles() {
 		const input = document.createElement('input');
 		input.type = 'file';
 		input.accept = '.json';
+		input.multiple = true;
 
 		input.addEventListener('change', () => {
-			const file = input.files?.[0];
-			if (!file) return;
+			const files = input.files;
+			if (!files || files.length === 0) return;
 
-			const reader = new FileReader();
-			reader.onload = () => {
-				const text = reader.result as string;
+			if (files.length > 2) {
+				setError('Wybierz maksymalnie 2 pliki.');
+				return;
+			}
 
-				let parsed: unknown;
-				try {
-					parsed = JSON.parse(text);
-				} catch {
-					setError('Nieprawidłowy plik. Nie udało się odczytać JSON.');
-					return;
-				}
+			const fileArray = Array.from(files);
+			let loaded: { words: WordObject[]; rawText: string }[] = [];
+			let loadedCount = 0;
 
-				const result = validateAndReconstructWords(parsed);
-				if (!result.success) {
-					setError(result.error);
-					return;
-				}
+			fileArray.forEach((file, index) => {
+				const reader = new FileReader();
+				reader.onload = () => {
+					const text = reader.result as string;
 
-				if (slot === 2 && attempt1) {
-					const matchResult = validateRawTextMatch(attempt1.rawText, result.rawText);
-					if (!matchResult.success) {
-						setError(matchResult.error!);
+					let parsed: unknown;
+					try {
+						parsed = JSON.parse(text);
+					} catch {
+						setError(`Nieprawidłowy plik (${file.name}). Nie udało się odczytać JSON.`);
 						return;
 					}
-				}
 
-				if (slot === 1) {
-					attempt1 = { words: result.words, rawText: result.rawText };
-				} else {
-					attempt2 = { words: result.words, rawText: result.rawText };
-				}
+					const result = validateAndReconstructWords(parsed);
+					if (!result.success) {
+						setError(`${file.name}: ${result.error}`);
+						return;
+					}
 
-				error = '';
-				if (errorTimeout) {
-					clearTimeout(errorTimeout);
-					errorTimeout = null;
-				}
-			};
+					loaded[index] = { words: result.words, rawText: result.rawText };
+					loadedCount++;
 
-			reader.readAsText(file);
+					if (loadedCount === fileArray.length) {
+						assignLoadedFiles(loaded);
+					}
+				};
+				reader.readAsText(file);
+			});
 		});
 
 		input.click();
+	}
+
+	function assignLoadedFiles(loaded: { words: WordObject[]; rawText: string }[]) {
+		if (loaded.length === 1) {
+			// Single file - assign to first empty slot
+			if (!attempt1) {
+				attempt1 = loaded[0];
+			} else if (!attempt2) {
+				const matchResult = validateRawTextMatch(attempt1.rawText, loaded[0].rawText);
+				if (!matchResult.success) {
+					setError(matchResult.error!);
+					return;
+				}
+				attempt2 = loaded[0];
+			} else {
+				// Both filled - replace both starting from slot 1
+				attempt1 = loaded[0];
+				attempt2 = null;
+			}
+		} else if (loaded.length === 2) {
+			const matchResult = validateRawTextMatch(loaded[0].rawText, loaded[1].rawText);
+			if (!matchResult.success) {
+				setError(matchResult.error!);
+				return;
+			}
+			attempt1 = loaded[0];
+			attempt2 = loaded[1];
+		}
+
+		error = '';
+		if (errorTimeout) {
+			clearTimeout(errorTimeout);
+			errorTimeout = null;
+		}
+	}
+
+	/** Set of word indices marked in both attempts (repeated errors) */
+	let repeatedIndices = $derived.by<Set<number>>(() => {
+		if (!attempt1 || !attempt2) return new Set();
+		const set = new Set<number>();
+		for (let i = 0; i < attempt1.words.length; i++) {
+			if (attempt1.words[i].isMarked && attempt2.words[i].isMarked) {
+				set.add(i);
+			}
+		}
+		return set;
+	});
+
+	function isRepeated(index: number): boolean {
+		return repeatedIndices.has(index);
+	}
+
+	function swapAttempts() {
+		const temp = attempt1;
+		attempt1 = attempt2;
+		attempt2 = temp;
 	}
 </script>
 
@@ -91,8 +173,10 @@
 	<h1>Porównanie prób</h1>
 
 	<div class="import-section">
-		<button class="btn-secondary" onclick={() => importAttempt(1)}>Importuj próbę 1</button>
-		<button class="btn-secondary" onclick={() => importAttempt(2)}>Importuj próbę 2</button>
+		<button class="btn-secondary" onclick={importFiles}>Importuj pliki</button>
+		{#if attempt1 && attempt2}
+			<button class="btn-secondary" onclick={swapAttempts}>⇄ Zamień miejscami</button>
+		{/if}
 		<button class="btn-primary" onclick={() => window.print()}>Drukuj do PDF</button>
 		<a class="btn-secondary" href="{base}/">Wróć do edycji</a>
 	</div>
@@ -103,16 +187,34 @@
 
 	{#if attempt1 && attempt2}
 		<div class="compare-columns">
-			{#each [{ data: attempt1, count: markedCount1 }, { data: attempt2, count: markedCount2 }] as col}
+			{#each [{ data: attempt1, count: markedCount1, label: 'Próba 1' }, { data: attempt2, count: markedCount2, label: 'Próba 2' }] as col}
 				<div class="column">
+					<h2 class="column-label">{col.label}</h2>
 					<div class="text-content">
-						{#each col.data.words as word (word.id)}
-							<WordDisplay {word} readonly={true} />{' '}
+						{#each col.data.words as word, i (word.id)}
+							<WordDisplay {word} readonly={true} highlighted={word.isMarked && isRepeated(i)} />{' '}
 						{/each}
 					</div>
 					<p class="word-count-summary">Zaznaczone wyrazy: {col.count}</p>
 				</div>
 			{/each}
+		</div>
+
+		<!-- Print summary with marked word lists -->
+		<div class="print-summary">
+			<h2>Podsumowanie – lista zaznaczonych słów</h2>
+			<div class="summary-columns">
+				{#each [{ words: markedWords1, count: markedCount1, label: 'Próba 1' }, { words: markedWords2, count: markedCount2, label: 'Próba 2' }] as col}
+					<div class="summary-column">
+						<h3>{col.label} ({col.count} słów)</h3>
+						<ul class="summary-list">
+							{#each col.words as word, i (i)}
+								<li>{word}</li>
+							{/each}
+						</ul>
+					</div>
+				{/each}
+			</div>
 		</div>
 	{/if}
 </main>
@@ -172,6 +274,14 @@
 		overflow: hidden;
 	}
 
+	.column-label {
+		font-size: 1rem;
+		font-weight: 600;
+		margin-bottom: var(--space-2);
+		padding: 0 var(--space-4);
+		color: var(--color-gray-600);
+	}
+
 	.text-content {
 		text-align: justify;
 		width: 100%;
@@ -195,6 +305,45 @@
 	.word-count-summary {
 		margin-top: var(--space-4);
 		font-weight: bold;
+		padding: 0 var(--space-4);
+	}
+
+	/* Print summary - hidden on screen, visible on print */
+	.print-summary {
+		display: none;
+	}
+
+	.print-summary h2 {
+		font-size: 12pt;
+		margin-bottom: 8pt;
+	}
+
+	.summary-columns {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		gap: var(--space-8);
+	}
+
+	.summary-column h3 {
+		font-size: 10pt;
+		font-weight: 600;
+		margin-bottom: 4pt;
+	}
+
+	.summary-list {
+		list-style: none;
+		padding: 0;
+		margin: 0;
+		display: flex;
+		flex-direction: row;
+		flex-wrap: wrap;
+		gap: 10pt;
+	}
+
+	.summary-list li {
+		font-size: 9pt;
+		line-height: 1.4;
+		padding: 1px;
 	}
 
 	@media print {
@@ -211,6 +360,11 @@
 
 		.compare-columns {
 			grid-template-columns: 1fr 1fr;
+		}
+
+		.column-label {
+			font-size: 9pt;
+			margin-bottom: 4pt;
 		}
 
 		.text-content {
@@ -237,6 +391,14 @@
 
 		.word-count-summary {
 			display: block !important;
+		}
+
+		.print-summary {
+			display: block;
+			margin-top: 16pt;
+			page-break-before: auto;
+			border-top: 1px solid #ccc;
+			padding-top: 12pt;
 		}
 	}
 </style>

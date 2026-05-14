@@ -4,11 +4,13 @@
 	let {
 		word,
 		onToggleMark,
-		readonly = false
+		readonly = false,
+		highlighted = false
 	}: {
 		word: WordObject;
 		onToggleMark?: (wordId: string) => void;
 		readonly?: boolean;
+		highlighted?: boolean;
 	} = $props();
 
 	function handleClick(event: MouseEvent) {
@@ -25,6 +27,7 @@
 <span
 	class="word-display"
 	class:marked={word.isMarked}
+	class:highlighted
 	class:readonly
 	data-word-id={word.id}
 	onclick={handleClick}
@@ -68,6 +71,20 @@
 		right: 0;
 		background-color: var(--color-primary-100, #dbeafe);
 		border: 1px solid var(--color-primary-400, #60a5fa);
+		border-radius: var(--radius-xs);
+		z-index: -1;
+		pointer-events: none;
+	}
+
+	.word-display.highlighted::before {
+		content: '';
+		position: absolute;
+		top: 0;
+		bottom: 0;
+		left: 0;
+		right: 0;
+		background-color: #fff3e0;
+		border: 1px solid #fb8c00;
 		border-radius: var(--radius-xs);
 		z-index: -1;
 		pointer-events: none;
