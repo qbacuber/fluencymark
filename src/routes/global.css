@@ -70,6 +70,8 @@ body {
   line-height: var(--line-height-body);
   font-weight: var(--font-weight-body);
   font-family: system-ui, -apple-system, sans-serif;
+  overflow-x: hidden;
+  max-width: 100vw;
 }
 
 h1 {
@@ -86,11 +88,6 @@ h2 {
 
 /* Print Styles */
 @media print {
-  @page {
-    size: A4;
-    margin: 20mm 15mm;
-  }
-
   button, .context-menu, textarea, input[type='file'],
   .header-bar, .editor-container, .import-error {
     display: none !important;
@@ -101,7 +98,7 @@ h2 {
   }
 
   .text-content {
-    max-width: 100% !important;
+    max-width: 50em !important;
     padding: 0 !important;
     font-size: 10pt !important;
     line-height: 1.4 !important;

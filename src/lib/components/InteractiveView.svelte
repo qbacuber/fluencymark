@@ -37,27 +37,7 @@
 		input.click();
 	}
 
-	function handleLegacyImport() {
-		const input = document.createElement('input');
-		input.type = 'file';
-		input.accept = '.json';
-		input.onchange = () => {
-			const file = input.files?.[0];
-			if (!file) return;
-			const reader = new FileReader();
-			reader.onload = () => {
-				const result = documentStore.importLegacyJson(reader.result as string);
-				if (!result.success) {
-					importError = result.error ?? 'Plik nie jest rozpoznanym formatem starszej wersji.';
-					setTimeout(() => (importError = ''), 4000);
-				} else {
-					importError = '';
-				}
-			};
-			reader.readAsText(file);
-		};
-		input.click();
-	}
+
 
 	function handleContainerMouseUp() {
 		const selection = window.getSelection();
@@ -72,12 +52,7 @@
 	<div class="header-bar">
 		<h1>FluencyMark — Widok interaktywny</h1>
 		<div class="header-actions">
-			<button
-				class="btn-secondary"
-				onclick={handleLegacyImport}
-			>
-				Importuj stary JSON
-			</button>
+
 			<button
 				class="btn-secondary"
 				onclick={handleImport}
@@ -118,7 +93,7 @@
 	<!-- svelte-ignore a11y_no_static_element_interactions -->
 	<div class="text-content" onmouseup={handleContainerMouseUp}>
 		{#each documentStore.words as word (word.id)}
-			<WordDisplay {word} onToggleMark={(wordId) => documentStore.toggleMark(wordId)} />
+			<WordDisplay {word} onToggleMark={(wordId) => documentStore.toggleMark(wordId)} />{' '}
 		{/each}
 	</div>
 </div>
@@ -129,6 +104,9 @@
 		flex-direction: column;
 		height: 100%;
 		padding: var(--space-6);
+		max-width: 100%;
+		overflow-x: hidden;
+		page: portrait-page;
 	}
 
 	.header-bar {
@@ -136,6 +114,8 @@
 		align-items: center;
 		justify-content: space-between;
 		margin-bottom: var(--space-6);
+		flex-wrap: wrap;
+		gap: var(--space-3);
 	}
 
 	.header-bar h1 {
@@ -144,6 +124,7 @@
 
 	.header-actions {
 		display: flex;
+		flex-wrap: wrap;
 		gap: var(--space-3);
 	}
 
@@ -189,7 +170,8 @@
 
 	.text-content {
 		text-align: justify;
-		max-width: 72ch;
+		width: 100%;
+		max-width: 90ch;
 		margin: 0 auto;
 		padding: 0 var(--space-6);
 		font-size: 1.2rem;
@@ -199,5 +181,12 @@
 		-ms-hyphens: auto;
 		text-justify: inter-word;
 		letter-spacing: 0.05em;
+	}
+
+	@media print {
+		@page portrait-page {
+			size: portrait;
+			margin: 20mm 15mm;
+		}
 	}
 </style>

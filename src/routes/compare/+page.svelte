@@ -5,6 +5,7 @@
 		validateRawTextMatch,
 		countMarkedWords
 	} from '$lib/utils/compareUtils';
+	import WordDisplay from '$lib/components/WordDisplay.svelte';
 
 	interface AttemptState {
 		words: WordObject[];
@@ -92,6 +93,7 @@
 		<button class="btn-secondary" onclick={() => importAttempt(1)}>Importuj próbę 1</button>
 		<button class="btn-secondary" onclick={() => importAttempt(2)}>Importuj próbę 2</button>
 		<button class="btn-primary" onclick={() => window.print()}>Drukuj do PDF</button>
+		<a class="btn-secondary" href="/">Wróć do edycji</a>
 	</div>
 
 	{#if error}
@@ -100,22 +102,16 @@
 
 	{#if attempt1 && attempt2}
 		<div class="compare-columns">
-			<div class="column">
-				<div class="column-content">
-					{#each attempt1.words as word (word.id)}
-						<span class="word-readonly" class:marked={word.isMarked}>{word.text}</span>
-					{/each}
+			{#each [{ data: attempt1, count: markedCount1 }, { data: attempt2, count: markedCount2 }] as col}
+				<div class="column">
+					<div class="text-content">
+						{#each col.data.words as word (word.id)}
+							<WordDisplay {word} readonly={true} />{' '}
+						{/each}
+					</div>
+					<p class="word-count-summary">Zaznaczone wyrazy: {col.count}</p>
 				</div>
-				<p class="word-count-summary">Zaznaczone wyrazy: {markedCount1}</p>
-			</div>
-			<div class="column">
-				<div class="column-content">
-					{#each attempt2.words as word (word.id)}
-						<span class="word-readonly" class:marked={word.isMarked}>{word.text}</span>
-					{/each}
-				</div>
-				<p class="word-count-summary">Zaznaczone wyrazy: {markedCount2}</p>
-			</div>
+			{/each}
 		</div>
 	{/if}
 </main>
@@ -123,12 +119,15 @@
 <style>
 	.compare-page {
 		padding: var(--space-4);
-		max-width: 1400px;
+		max-width: 100%;
 		margin: 0 auto;
+		overflow-x: hidden;
+		page: landscape-page;
 	}
 
 	.import-section {
 		display: flex;
+		flex-wrap: wrap;
 		gap: var(--space-3);
 		margin-bottom: var(--space-4);
 	}
@@ -169,29 +168,21 @@
 		display: grid;
 		grid-template-columns: 1fr 1fr;
 		gap: var(--space-8);
+		overflow: hidden;
 	}
 
-	.column-content {
+	.text-content {
 		text-align: justify;
-		max-width: 72ch;
+		width: 100%;
 		margin: 0 auto;
 		padding: 0 var(--space-4);
 		font-size: 1.2rem;
 		line-height: 1.6;
 		hyphens: auto;
+		-webkit-hyphens: auto;
+		-ms-hyphens: auto;
+		text-justify: inter-word;
 		letter-spacing: 0.05em;
-	}
-
-	.word-readonly {
-		display: inline;
-		padding: 0 3px;
-		border-radius: var(--radius-xs);
-	}
-
-	.word-readonly.marked {
-		background-color: var(--color-primary-100, #dbeafe);
-		border: 1px solid var(--color-primary-400, #60a5fa);
-		border-radius: var(--radius-xs);
 	}
 
 	.import-error {
@@ -205,12 +196,12 @@
 		font-weight: bold;
 	}
 
-	@page {
-		size: landscape;
-		margin: 1cm;
-	}
-
 	@media print {
+		@page landscape-page {
+			size: landscape;
+			margin: 1cm;
+		}
+
 		.import-section,
 		.import-error,
 		button {
@@ -221,11 +212,21 @@
 			grid-template-columns: 1fr 1fr;
 		}
 
-		.column-content {
+		.text-content {
 			font-size: 0.8rem;
 			line-height: 1.3;
-			max-width: none;
+			max-width: 18em;
 			letter-spacing: 0.02em;
+			break-inside: auto;
+		}
+
+		.column {
+			break-inside: auto;
+		}
+
+		:global(.word-display) {
+			page-break-inside: avoid;
+			break-inside: avoid;
 		}
 
 		* {

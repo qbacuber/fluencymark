@@ -2,9 +2,7 @@ import type { AppMode, DocumentState, WordObject } from '$lib/types';
 import { serialize, deserialize } from '$lib/utils/storage';
 import { processText } from '$lib/utils/textProcessor';
 import {
-	validateLegacyData,
 	validateV2Data,
-	migrateLegacyToWords,
 	reconstructFromV2
 } from '$lib/utils/migration';
 
@@ -95,29 +93,7 @@ function createDocumentStore() {
 			}
 		},
 
-		importLegacyJson(json: string): { success: boolean; error?: string } {
-			try {
-				const parsed = JSON.parse(json);
-				const legacy = validateLegacyData(parsed);
-				if (!legacy) {
-					return {
-						success: false,
-						error: 'Plik nie jest rozpoznanym formatem starszej wersji.'
-					};
-				}
 
-				const words = migrateLegacyToWords(legacy);
-				state.rawText = legacy.rawText;
-				state.words = words;
-				state.mode = 'interactive';
-				return { success: true };
-			} catch {
-				return {
-					success: false,
-					error: 'Plik nie jest rozpoznanym formatem starszej wersji.'
-				};
-			}
-		}
 	};
 }
 

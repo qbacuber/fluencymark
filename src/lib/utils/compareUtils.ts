@@ -1,8 +1,6 @@
 import type { WordObject } from '$lib/types';
 import {
-	validateLegacyData,
 	validateV2Data,
-	migrateLegacyToWords,
 	reconstructFromV2
 } from '$lib/utils/migration';
 
@@ -18,11 +16,7 @@ export function validateAndReconstructWords(
 	}
 	const obj = data as Record<string, unknown>;
 
-	if (obj.version === 1) {
-		const legacy = validateLegacyData(data);
-		if (!legacy) return { success: false, error: 'Nieprawidłowy format pliku v1.' };
-		return { success: true, words: migrateLegacyToWords(legacy), rawText: legacy.rawText };
-	}
+
 
 	if (obj.version === 2) {
 		const v2 = validateV2Data(data);
