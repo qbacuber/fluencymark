@@ -47,7 +47,8 @@
 		cursor: pointer;
 		border-radius: var(--radius-xs);
 		padding: 0 3px;
-		user-select: text;
+		user-select: none;
+		-webkit-user-select: none;
 	}
 
 	.word-display:not(.readonly):hover {

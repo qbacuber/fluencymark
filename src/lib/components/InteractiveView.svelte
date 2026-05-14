@@ -181,6 +181,8 @@
 		-ms-hyphens: auto;
 		text-justify: inter-word;
 		letter-spacing: 0.05em;
+		user-select: none;
+		-webkit-user-select: none;
 	}
 
 	@media print {
