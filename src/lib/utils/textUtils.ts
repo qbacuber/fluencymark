@@ -4,7 +4,7 @@
  */
 export function cleanText(text: string): string {
 	return text
-		.replace(/^[.,?!;:—–\-…\u2026"'„"«»()\[\]{}]+/, '')
-		.replace(/[.,?!;:—–\-…\u2026"'„"«»()\[\]{}]+$/, '')
+		.replace(/^[.,?!;:—–\-…\u2026"'„”’‘"«»()\[\]{}]+/, '')
+		.replace(/[.,?!;:—–\-…\u2026"'„”’‘"«»()\[\]{}]+$/, '')
 		.toLowerCase();
 }
