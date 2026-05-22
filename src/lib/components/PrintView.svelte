@@ -1,12 +1,7 @@
 <script lang="ts">
 	import { documentStore } from '$lib/stores/documentStore.svelte';
+	import { cleanText } from '$lib/utils/textUtils';
 
-	/** Strip leading and trailing punctuation, then lowercase */
-	function cleanText(text: string): string {
-		return text.replace(/^[.,?!;:—–\-…\u2026"'„"«»()\[\]{}]+/, '')
-			.replace(/[.,?!;:—–\-…\u2026"'„"«»()\[\]{}]+$/, '')
-			.toLowerCase();
-	}
 
 	// Derive sorted list of marked word texts (cleaned)
 	let markedWordTexts = $derived(

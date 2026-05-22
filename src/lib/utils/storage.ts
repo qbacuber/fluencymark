@@ -1,6 +1,5 @@
+import { VALID_MODES } from '$lib/types';
 import type { DocumentState, WordObject } from '$lib/types';
-
-const VALID_MODES = ['edit', 'interactive'] as const;
 
 /**
  * Serializes the document state to localStorage.

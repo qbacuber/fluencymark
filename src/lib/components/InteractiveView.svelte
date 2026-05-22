@@ -42,6 +42,11 @@
 
 
 
+	/**
+	 * Clears any active text selection after mouseup.
+	 * This prevents browser text selection highlighting from lingering when the user clicks or drags,
+	 * providing a cleaner interactive highlighting experience.
+	 */
 	function handleContainerMouseUp() {
 		const selection = window.getSelection();
 		if (selection && !selection.isCollapsed) {
@@ -149,21 +154,7 @@
 		text-align: center;
 	}
 
-	.btn-secondary {
-		background-color: var(--color-gray-100);
-		color: var(--color-gray-700);
-		border: none;
-		border-radius: var(--radius-sm);
-		padding: var(--space-2) var(--space-4);
-		font-size: 0.875rem;
-		font-weight: 500;
-		cursor: pointer;
-		transition: background-color 0.15s;
-	}
 
-	.btn-secondary:hover {
-		background-color: var(--color-gray-300);
-	}
 
 	.settings-toggle-btn {
 		display: flex;
@@ -179,21 +170,7 @@
 		transform: rotate(45deg);
 	}
 
-	.btn-primary {
-		background-color: var(--color-primary);
-		color: var(--color-white);
-		border: none;
-		border-radius: var(--radius-sm);
-		padding: var(--space-2) var(--space-4);
-		font-size: 0.875rem;
-		font-weight: 500;
-		cursor: pointer;
-		transition: opacity 0.15s;
-	}
 
-	.btn-primary:hover {
-		opacity: 0.9;
-	}
 
 	.text-content {
 		text-align: justify;

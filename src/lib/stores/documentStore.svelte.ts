@@ -17,7 +17,11 @@ function createDocumentStore() {
 		return { mode: 'edit', rawText: '', words: [] };
 	}
 
-	// Auto-persist on state changes (using $effect.root since this runs at module level)
+	// Auto-persist on state changes.
+	// We wrap the reactive effect in `$effect.root` because this runs at the module level
+	// outside of a component lifecycle. Since the store is a singleton that lives
+	// for the entire duration of the application, we intentionally do not store or call
+	// the cleanup function returned by `$effect.root`.
 	$effect.root(() => {
 		$effect(() => {
 			serialize(STORAGE_KEY, state);

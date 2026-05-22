@@ -6,6 +6,7 @@
 		validateRawTextMatch,
 		countMarkedWords
 	} from '$lib/utils/compareUtils';
+	import { cleanText } from '$lib/utils/textUtils';
 	import WordDisplay from '$lib/components/WordDisplay.svelte';
 
 	interface AttemptState {
@@ -16,18 +17,18 @@
 	let attempt1 = $state<AttemptState | null>(null);
 	let attempt2 = $state<AttemptState | null>(null);
 	let error = $state<string>('');
-	let errorTimeout: ReturnType<typeof setTimeout> | null = null;
+
+	// Automatically clean up the error message after 5 seconds
+	$effect(() => {
+		if (!error) return;
+		const id = setTimeout(() => {
+			error = '';
+		}, 5000);
+		return () => clearTimeout(id);
+	});
 
 	let markedCount1 = $derived(attempt1 ? countMarkedWords(attempt1.words) : 0);
 	let markedCount2 = $derived(attempt2 ? countMarkedWords(attempt2.words) : 0);
-
-	/** Strip leading and trailing punctuation, then lowercase */
-	function cleanText(text: string): string {
-		return text
-			.replace(/^[.,?!;:—–\-…\u2026"'„"«»()\[\]{}]+/, '')
-			.replace(/[.,?!;:—–\-…\u2026"'„"«»()\[\]{}]+$/, '')
-			.toLowerCase();
-	}
 
 	let markedWords1 = $derived(
 		attempt1
@@ -51,13 +52,15 @@
 
 	function setError(message: string) {
 		error = message;
-		if (errorTimeout) {
-			clearTimeout(errorTimeout);
-		}
-		errorTimeout = setTimeout(() => {
-			error = '';
-			errorTimeout = null;
-		}, 5000);
+	}
+
+	function readFileAsText(file: File): Promise<string> {
+		return new Promise((resolve, reject) => {
+			const reader = new FileReader();
+			reader.onload = () => resolve(reader.result as string);
+			reader.onerror = () => reject(new Error(`Błąd odczytu pliku ${file.name}`));
+			reader.readAsText(file);
+		});
 	}
 
 	function importFiles() {
@@ -66,7 +69,7 @@
 		input.accept = '.json';
 		input.multiple = true;
 
-		input.addEventListener('change', () => {
+		input.addEventListener('change', async () => {
 			const files = input.files;
 			if (!files || files.length === 0) return;
 
@@ -76,37 +79,34 @@
 			}
 
 			const fileArray = Array.from(files);
-			let loaded: { words: WordObject[]; rawText: string }[] = [];
-			let loadedCount = 0;
 
-			fileArray.forEach((file, index) => {
-				const reader = new FileReader();
-				reader.onload = () => {
-					const text = reader.result as string;
+			try {
+				const fileContents = await Promise.all(fileArray.map(readFileAsText));
+				const loaded: { words: WordObject[]; rawText: string }[] = [];
+
+				for (let i = 0; i < fileArray.length; i++) {
+					const file = fileArray[i];
+					const text = fileContents[i];
 
 					let parsed: unknown;
 					try {
 						parsed = JSON.parse(text);
 					} catch {
-						setError(`Nieprawidłowy plik (${file.name}). Nie udało się odczytać JSON.`);
-						return;
+						throw new Error(`Nieprawidłowy plik (${file.name}). Nie udało się odczytać JSON.`);
 					}
 
 					const result = validateAndReconstructWords(parsed);
 					if (!result.success) {
-						setError(`${file.name}: ${result.error}`);
-						return;
+						throw new Error(`${file.name}: ${result.error}`);
 					}
 
-					loaded[index] = { words: result.words, rawText: result.rawText };
-					loadedCount++;
+					loaded[i] = { words: result.words, rawText: result.rawText };
+				}
 
-					if (loadedCount === fileArray.length) {
-						assignLoadedFiles(loaded);
-					}
-				};
-				reader.readAsText(file);
-			});
+				assignLoadedFiles(loaded);
+			} catch (e: any) {
+				setError(e.message || 'Wystąpił błąd podczas importowania plików.');
+			}
 		});
 
 		input.click();
@@ -140,10 +140,6 @@
 		}
 
 		error = '';
-		if (errorTimeout) {
-			clearTimeout(errorTimeout);
-			errorTimeout = null;
-		}
 	}
 
 	/** Set of word indices marked in both attempts (repeated errors) */
@@ -235,37 +231,7 @@
 		margin-bottom: var(--space-4);
 	}
 
-	.btn-secondary {
-		background-color: var(--color-gray-100);
-		color: var(--color-gray-700);
-		border: none;
-		border-radius: var(--radius-sm);
-		padding: var(--space-2) var(--space-4);
-		font-size: 0.875rem;
-		font-weight: 500;
-		cursor: pointer;
-		transition: background-color 0.15s;
-	}
 
-	.btn-secondary:hover {
-		background-color: var(--color-gray-300);
-	}
-
-	.btn-primary {
-		background-color: var(--color-primary);
-		color: var(--color-white);
-		border: none;
-		border-radius: var(--radius-sm);
-		padding: var(--space-2) var(--space-4);
-		font-size: 0.875rem;
-		font-weight: 500;
-		cursor: pointer;
-		transition: opacity 0.15s;
-	}
-
-	.btn-primary:hover {
-		opacity: 0.9;
-	}
 
 	.compare-columns {
 		display: grid;

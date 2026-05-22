@@ -32,6 +32,7 @@
 	}
 
 	function handleConfirm() {
+		if (!documentStore.rawText.trim()) return;
 		documentStore.confirmText();
 	}
 </script>
@@ -64,7 +65,7 @@
 
 		<button
 			onclick={handleConfirm}
-			class="btn-primary"
+			class="btn-primary btn-lg"
 		>
 			Zatwierdź
 		</button>
@@ -138,25 +139,5 @@
 		margin: 0;
 	}
 
-	.btn-primary {
-		background-color: var(--color-primary);
-		color: var(--color-white);
-		border: none;
-		border-radius: var(--radius-sm);
-		padding: var(--space-3) var(--space-8);
-		font-size: 1.125rem;
-		font-weight: 600;
-		cursor: pointer;
-		box-shadow: var(--shadow-md);
-		transition: opacity 0.15s ease;
-	}
 
-	.btn-primary:hover {
-		opacity: 0.9;
-	}
-
-	.btn-primary:focus {
-		outline: none;
-		box-shadow: 0 0 0 2px rgba(217, 119, 87, 0.4);
-	}
 </style>

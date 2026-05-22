@@ -11,8 +11,8 @@ export function processText(rawText: string): WordObject[] {
 
 	const tokens = rawText.split(/\s+/).filter((token) => token.length > 0);
 
-	return tokens.map((token) => ({
-		id: crypto.randomUUID(),
+	return tokens.map((token, index) => ({
+		id: `word-${index}`,
 		text: token,
 		isMarked: false
 	}));

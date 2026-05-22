@@ -6,7 +6,7 @@ import {
 
 /**
  * Validates and reconstructs a WordObject array from imported data.
- * Supports both v1 (legacy) and v2 formats, detected via the `version` field.
+ * Supports v2 format, detected via the `version` field.
  */
 export function validateAndReconstructWords(
 	data: unknown
