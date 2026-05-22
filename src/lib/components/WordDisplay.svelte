@@ -1,5 +1,6 @@
 <script lang="ts">
 	import type { WordObject } from '$lib/types';
+	import { settingsStore } from '$lib/stores/settingsStore.svelte';
 
 	let {
 		word,
@@ -22,6 +23,40 @@
 		}
 		if (onToggleMark) onToggleMark(word.id);
 	}
+
+	// Dynamic segment calculation for text bolding/underlining helpers
+	let segments = $derived.by(() => {
+		const result: { text: string; isHighlight: boolean }[] = [];
+		const activeLetters = settingsStore.activeLettersSet;
+		if (activeLetters.size === 0) {
+			return [{ text: word.text, isHighlight: false }];
+		}
+
+		let currentText = '';
+		let currentHighlight = false;
+
+		for (let i = 0; i < word.text.length; i++) {
+			const char = word.text[i];
+			const isHighlight = activeLetters.has(char.toLowerCase());
+
+			if (i === 0) {
+				currentText = char;
+				currentHighlight = isHighlight;
+			} else if (isHighlight === currentHighlight) {
+				currentText += char;
+			} else {
+				result.push({ text: currentText, isHighlight: currentHighlight });
+				currentText = char;
+				currentHighlight = isHighlight;
+			}
+		}
+
+		if (currentText) {
+			result.push({ text: currentText, isHighlight: currentHighlight });
+		}
+
+		return result;
+	});
 </script>
 
 <span
@@ -33,6 +68,7 @@
 	onclick={handleClick}
 	role={readonly ? undefined : 'button'}
 	tabindex={readonly ? undefined : 0}
+	aria-pressed={readonly ? undefined : word.isMarked}
 	onkeydown={(e) => {
 		if (readonly) return;
 		if (e.key === 'Enter' || e.key === ' ') {
@@ -40,7 +76,7 @@
 			if (onToggleMark) onToggleMark(word.id);
 		}
 	}}
->{word.text}</span>
+>{#each segments as segment}{#if segment.isHighlight}<span class="styled-letter" class:bold={settingsStore.boldEnabled} class:underline={settingsStore.underlineEnabled}>{segment.text}</span>{:else}{segment.text}{/if}{/each}</span>
 
 <style>
 	.word-display {
@@ -88,5 +124,15 @@
 		border-radius: var(--radius-xs);
 		z-index: -1;
 		pointer-events: none;
+	}
+
+	.styled-letter.bold {
+		font-weight: 800;
+	}
+
+	.styled-letter.underline {
+		text-decoration: underline;
+		text-decoration-thickness: 2px;
+		text-underline-offset: 2px;
 	}
 </style>
