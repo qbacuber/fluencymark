@@ -5,6 +5,7 @@ export interface SettingsState {
 	letters: string;
 	boldEnabled: boolean;
 	underlineEnabled: boolean;
+	theme: 'light' | 'dark' | 'system';
 }
 
 function loadInitialSettings(): SettingsState {
@@ -13,7 +14,8 @@ function loadInitialSettings(): SettingsState {
 			enabled: true,
 			letters: 'l, i, j',
 			boldEnabled: true,
-			underlineEnabled: true
+			underlineEnabled: true,
+			theme: 'system'
 		};
 	}
 	try {
@@ -24,7 +26,8 @@ function loadInitialSettings(): SettingsState {
 				enabled: parsed.enabled ?? true,
 				letters: parsed.letters ?? 'l, i, j',
 				boldEnabled: parsed.boldEnabled ?? true,
-				underlineEnabled: parsed.underlineEnabled ?? true
+				underlineEnabled: parsed.underlineEnabled ?? true,
+				theme: parsed.theme ?? 'system'
 			};
 		}
 	} catch (e) {
@@ -34,7 +37,8 @@ function loadInitialSettings(): SettingsState {
 		enabled: true,
 		letters: 'l, i, j',
 		boldEnabled: true,
-		underlineEnabled: true
+		underlineEnabled: true,
+		theme: 'system'
 	};
 }
 
@@ -48,6 +52,35 @@ function createSettingsStore() {
 					localStorage.setItem(SETTINGS_KEY, JSON.stringify(state));
 				} catch (e) {
 					console.error('Failed to save settings:', e);
+				}
+			});
+
+			$effect(() => {
+				const theme = state.theme ?? 'system';
+				const applyTheme = () => {
+					let resolvedTheme: 'light' | 'dark' = 'light';
+					if (theme === 'system') {
+						resolvedTheme = (typeof window.matchMedia === 'function' && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light';
+					} else {
+						resolvedTheme = theme;
+					}
+
+					if (resolvedTheme === 'dark') {
+						document.documentElement.classList.add('dark');
+						document.documentElement.setAttribute('data-theme', 'dark');
+					} else {
+						document.documentElement.classList.remove('dark');
+						document.documentElement.setAttribute('data-theme', 'light');
+					}
+				};
+
+				applyTheme();
+
+				if (theme === 'system' && typeof window.matchMedia === 'function') {
+					const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+					const handler = () => applyTheme();
+					mediaQuery.addEventListener('change', handler);
+					return () => mediaQuery.removeEventListener('change', handler);
 				}
 			});
 		});
@@ -77,6 +110,12 @@ function createSettingsStore() {
 		},
 		set underlineEnabled(val: boolean) {
 			state.underlineEnabled = val;
+		},
+		get theme(): 'light' | 'dark' | 'system' {
+			return state.theme ?? 'system';
+		},
+		set theme(val: 'light' | 'dark' | 'system') {
+			state.theme = val;
 		},
 
 		get activeLettersSet(): Set<string> {

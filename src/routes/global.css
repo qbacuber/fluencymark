@@ -24,6 +24,12 @@
   --color-warning-tint: #faf0e0;
   --color-info-tint: #e0eaf3;
 
+  /* Marker & Highlight Colors (Light mode defaults) */
+  --color-primary-100: #dbeafe; /* Light blue background for marked words */
+  --color-primary-400: #60a5fa; /* Blue border for marked words */
+  --color-highlight-bg: #fff3e0; /* Light orange background for repeated errors */
+  --color-highlight-border: #fb8c00; /* Orange border for repeated errors */
+
   /* Spacing */
   --space-1: 4px;
   --space-2: 8px;
@@ -57,6 +63,46 @@
   --font-weight-h2: 500;
 }
 
+/* Dark Theme Variables */
+:root.dark, [data-theme="dark"] {
+  color-scheme: dark;
+
+  /* Brand Colors */
+  --color-primary: #E58B6D;
+  --color-slate: #FAF9F5;
+  --color-ivory: #141413;
+  --color-oat: #2C2B29;
+
+  /* Neutral Colors */
+  --color-white: #1D1D1C;
+  --color-gray-100: #292826;
+  --color-gray-300: #42413F;
+  --color-gray-500: #8E8D86;
+  --color-gray-700: #E3DACC;
+
+  /* Semantic Colors */
+  --color-success: #8BA36E;
+  --color-warning: #DCA052;
+  --color-danger: #C55E5E;
+  --color-info: #7092BA;
+
+  /* Semantic Tints */
+  --color-danger-tint: #401B1B;
+  --color-warning-tint: #402E15;
+  --color-info-tint: #1C2B3C;
+
+  /* Marker & Highlight Colors (Dark mode equivalents) */
+  --color-primary-100: rgba(96, 165, 250, 0.25);
+  --color-primary-400: #60a5fa;
+  --color-highlight-bg: rgba(251, 140, 0, 0.25);
+  --color-highlight-border: #fb8c00;
+
+  /* Shadows override for dark mode */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 10px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 12px 28px rgba(0, 0, 0, 0.5);
+}
+
 /* Base Element Styles */
 *, *::before, *::after {
   box-sizing: border-box;
@@ -72,6 +118,7 @@ body {
   font-family: system-ui, -apple-system, sans-serif;
   overflow-x: hidden;
   max-width: 100vw;
+  transition: background-color 0.25s ease, color 0.25s ease, border-color 0.25s ease;
 }
 
 h1 {
@@ -88,6 +135,24 @@ h2 {
 
 /* Print Styles */
 @media print {
+  :root, :root.dark, [data-theme="dark"] {
+    --color-primary: #D97757;
+    --color-slate: #141413;
+    --color-ivory: #FAF9F5;
+    --color-oat: #E3DACC;
+
+    --color-white: #FFFFFF;
+    --color-gray-100: #F0EEE6;
+    --color-gray-300: #D1CFC5;
+    --color-gray-500: #87867F;
+    --color-gray-700: #3D3D3A;
+
+    --color-primary-100: #dbeafe;
+    --color-primary-400: #60a5fa;
+    --color-highlight-bg: #fff3e0;
+    --color-highlight-border: #fb8c00;
+  }
+
   button, .context-menu, textarea, input[type='file'],
   .header-bar, .editor-container, .import-error {
     display: none !important;
@@ -119,6 +184,7 @@ h2 {
     padding: 0;
     margin: 0;
     background-color: var(--color-white);
+    color: var(--color-slate);
     font-size: 10pt;
     line-height: 1.4;
   }

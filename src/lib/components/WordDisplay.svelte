@@ -119,8 +119,8 @@
 		bottom: 0;
 		left: 0;
 		right: 0;
-		background-color: #fff3e0;
-		border: 1px solid #fb8c00;
+		background-color: var(--color-highlight-bg, #fff3e0);
+		border: 1px solid var(--color-highlight-border, #fb8c00);
 		border-radius: var(--radius-xs);
 		z-index: -1;
 		pointer-events: none;

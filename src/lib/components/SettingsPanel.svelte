@@ -25,6 +25,36 @@
 
 			<div class="drawer-body">
 				<div class="setting-item">
+					<span class="setting-label-main">Motyw</span>
+					<div class="theme-selector">
+						<button
+							class="theme-btn"
+							class:active={settingsStore.theme === 'system'}
+							onclick={() => (settingsStore.theme = 'system')}
+						>
+							<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="theme-icon"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>
+							Systemowy
+						</button>
+						<button
+							class="theme-btn"
+							class:active={settingsStore.theme === 'light'}
+							onclick={() => (settingsStore.theme = 'light')}
+						>
+							<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="theme-icon"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+							Jasny
+						</button>
+						<button
+							class="theme-btn"
+							class:active={settingsStore.theme === 'dark'}
+							onclick={() => (settingsStore.theme = 'dark')}
+						>
+							<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="theme-icon"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+							Ciemny
+						</button>
+					</div>
+				</div>
+
+				<div class="setting-item">
 					<div class="setting-row">
 						<span class="setting-label-main">Wizualne pomocniki czytania</span>
 						<label class="switch">
@@ -257,6 +287,48 @@
 
 	input:checked + .slider:before {
 		transform: translateX(22px);
+	}
+
+	/* Theme Selector Styles */
+	.theme-selector {
+		display: flex;
+		background-color: var(--color-gray-100);
+		border-radius: var(--radius-sm);
+		padding: var(--space-1);
+		gap: var(--space-1);
+		border: 1px solid var(--color-gray-300);
+		margin-top: var(--space-1);
+	}
+
+	.theme-btn {
+		flex: 1;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		gap: var(--space-2);
+		background: none;
+		border: none;
+		padding: var(--space-2) var(--space-1);
+		font-size: 0.85rem;
+		font-weight: 500;
+		color: var(--color-gray-700);
+		cursor: pointer;
+		border-radius: calc(var(--radius-sm) - 2px);
+		transition: background-color 0.15s, color 0.15s, box-shadow 0.15s;
+	}
+
+	.theme-btn:hover {
+		color: var(--color-slate);
+	}
+
+	.theme-btn.active {
+		background-color: var(--color-white);
+		color: var(--color-primary);
+		box-shadow: var(--shadow-sm);
+	}
+
+	.theme-icon {
+		flex-shrink: 0;
 	}
 
 	/* Print styling */

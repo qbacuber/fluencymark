@@ -263,7 +263,7 @@
 	}
 
 	.import-error {
-		color: red;
+		color: var(--color-danger);
 		font-weight: bold;
 		margin-top: 1rem;
 	}
